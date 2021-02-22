@@ -1,75 +1,55 @@
 <template>
-  <div class="container">
-    <div
-      class="tower"
-      @dragover.prevent="dragOver"
-      @drop="dragEnd"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-    >
+  <header>
+    <h1>Tower of hanoi</h1>
+  </header>
+  <main>
+    <div class="container">
       <div
-        v-for="item in towerLeft"
-        :key="item"
-        :class="`tower__block-${item}`"
-        class="tower__block"
-        :id="item"
-        @dragstart="dragStart"
-      ></div>
-    </div>
-    <div
-      class="tower center"
-      @dragover.prevent="dragOver"
-      @drop="dragEnd"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-    >
-      <div
-        v-for="item in towerCenter"
-        :key="item"
-        :class="`tower__block-${item}`"
-        class="tower__block"
-        @dragstart="dragStart"
-      ></div>
-    </div>
-    <div
-      class="tower"
-      @dragover.prevent="dragOver"
-      @drop="dragEnd"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-    >
-      <div
-        v-for="item in towerRigth"
-        :key="item"
-        :class="`tower__block-${item}`"
-        class="tower__block"
+        class="tower left"
+        @dragover.prevent="dragOver"
+        @drop="dragEnd"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
       >
-        {{ item }}
+        <div
+          v-for="item in towerLeft"
+          :key="item"
+          :class="`tower__block-${item}`"
+          class="tower__block"
+          :id="item"
+          @dragstart="dragStart"
+        ></div>
       </div>
+      <div
+        class="tower center"
+        @dragover.prevent="dragOver"
+        @drop="dragEnd"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
+      ></div>
+      <div
+        class="tower rigth"
+        @dragover.prevent="dragOver"
+        @drop="dragEnd"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
+      ></div>
     </div>
-  </div>
-  <div class="control">
-    <button @click="move(towerLeft, towerCenter)">Tower1 - Tower2</button>
-    <button @click="move(towerLeft, towerRigth)">Tower1 - Tower3</button>
-    <button @click="move(towerCenter, towerRigth)">Tower2 - Tower3</button>
-  </div>
-  <div class="control">
-    <button @click="move(towerCenter, towerLeft)">Tower2 - Tower1</button>
-    <button @click="move(towerRigth, towerLeft)">Tower3 - Tower1</button>
-    <button @click="move(towerRigth, towerCenter)">Tower3 - Tower2</button>
-  </div>
-  <div class="newGame">
-    <button @click="init">New Game</button>
-  </div>
+    <div class="new-game">
+      <button @click="init">New Game</button>
+    </div>
+  </main>
 </template>
 
 <script>
+import { newTop } from "./game";
+
 export default {
   name: "App",
   components: {},
   data() {
     return {
-      all: 3,
+      all: 7,
       towerLeft: [],
       towerCenter: [],
       towerRigth: [],
@@ -78,54 +58,17 @@ export default {
       droppable: false
     };
   },
-  computed: {
-    towerCenterLength() {
-      return this.towerCenter.length;
-    },
-    towerRigthLength() {
-      return this.towerRigth.length;
-    }
-  },
-  watch: {
-    towerCenterLength: "win",
-    towerRigthLength: "win"
-  },
   methods: {
     init() {
       this.towerLeft = [];
       this.towerCenter = [];
       this.towerRigth = [];
-
-      for (let i = this.all; i > 0; i--) {
-        this.towerLeft.push(i);
-      }
-      this.newTop();
-    },
-    newTop() {
-      const towers = document.querySelectorAll(".tower");
       setTimeout(() => {
-        towers.forEach(item => {
-          const top = item.lastElementChild;
-          if (top) {
-            top.draggable = "true";
-            top.classList.add("draggable");
-            const supTop = top.previousElementSibling;
-            if (supTop) {
-              supTop.draggable = false;
-              supTop.classList.remove("draggable");
-            }
-          }
-        });
+        for (let i = this.all; i > 0; i--) {
+          this.towerLeft.push(i);
+        }
       }, 0);
-    },
-    win() {
-      if (
-        this.towerCenterLength === this.all ||
-        this.towerRigthLength === this.all
-      ) {
-        alert("You won!");
-      }
-      console.log(this.towerHeght);
+      setTimeout(() => newTop(), 300);
     },
     dragEnter(e) {
       if (e.target.classList.contains("tower")) {
@@ -152,7 +95,7 @@ export default {
       }
     },
     dragEnd(e) {
-      if (this.droppable) {
+      if (this.droppable && e.target.classList.contains("tower")) {
         e.target.appendChild(this.currentElement);
         this.currentElement = null;
       }
@@ -161,8 +104,8 @@ export default {
       if (childrens === this.all) {
         alert("You won!");
       }
-      console.log(childrens);
-      this.newTop();
+      console.log("childrens: " + childrens);
+      newTop();
     },
     dragStart(e) {
       this.currentElement = e.target;
@@ -172,13 +115,53 @@ export default {
 </script>
 
 <style lang="scss">
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+header h1 {
+  position: relative;
+  padding-top: 3rem;
+  padding-bottom: 10rem;
+  font-size: 5rem;
+  color: #ffcb9a;
+}
+main {
+  position: relative;
+  width: 100%;
+}
+
 #app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  color: #116466;
+  // background-color: linear-gradient(#116466 0%, #ffcb9a 50%);
+  background-image: url(../public/bg.jpeg);
+  background-size: cover;
+  // background-blend-mode: soft-light;
+
+  &::before {
+    content: "";
+    position: absolute;
+    height: 100vh;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(185deg, #116466 0%, #ffcb9a 50%);
+    opacity: 0.75;
+    z-index: 0;
+  }
 }
 
 .draggable {
@@ -186,20 +169,21 @@ export default {
 }
 
 .color-green {
-  background-color: #74fc3e71;
+  background-color: #74fc3e36;
 }
 
 .color-red {
-  background-color: #fc3e3e71;
+  background-color: #fc3e3e3a;
 }
 
 .container {
   width: 100%;
   max-width: 1200px;
-  height: 400px;
+  height: 300px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
+  align-items: stretch;
 }
 
 .tower {
@@ -208,16 +192,60 @@ export default {
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
+  border-bottom: 5px solid #116466;
 
   &__block {
-    height: 30px;
-    border: 2px solid #000000;
+    height: 2.5rem;
+    border: 2px solid #2c3531;
+    border-radius: 1rem;
+    background: radial-gradient(
+      circle at top,
+      rgba(209, 232, 226, 1) 0%,
+      rgba(17, 100, 102, 1) 60%,
+      rgba(44, 53, 49, 1) 100%
+    );
+    // transform: translateY(-1rem);
+    animation: drop 0.7s forwards;
 
     @for $i from 1 through 7 {
       &-#{$i} {
         width: 100% - 15 * (7-$i);
       }
     }
+  }
+}
+
+.new-game {
+  padding: 30px;
+
+  & button {
+    border-radius: 0.7rem;
+    border: 1px solid #d1e8e2;
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    background-color: #116466;
+    color: #d1e8e2;
+    cursor: pointer;
+    transition: all 0.3s linear;
+
+    &:hover {
+      color: #116466;
+      background-color: #d1e8e2;
+      border-color: #2c3531;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+@keyframes drop {
+  from {
+    transform: translateY(-1rem);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 </style>
