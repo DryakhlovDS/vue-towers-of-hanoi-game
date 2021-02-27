@@ -1,6 +1,5 @@
 export function newTop() {
   const towers = document.querySelectorAll(".tower");
-  // setTimeout(() => {
   towers.forEach(item => {
     const top = item.lastElementChild;
     if (top) {
@@ -13,5 +12,4 @@ export function newTop() {
       }
     }
   });
-  // }, 0);
 }

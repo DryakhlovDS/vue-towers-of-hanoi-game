@@ -1,114 +1,109 @@
 <template>
   <header>
-    <h1>Tower of hanoi</h1>
+    <h1>Tower of Hanoi</h1>
   </header>
   <main>
     <div class="container">
-      <div
-        class="tower left"
-        @dragover.prevent="dragOver"
-        @drop="dragEnd"
-        @dragenter="dragEnter"
-        @dragleave="dragLeave"
+      <the-tower
+        :currentElement="currentElement"
+        class="left"
+        id="towerLeft"
+        :tower="towers.towerLeft"
+        @endDrop="dropElement"
+        @elementMove="startDrag"
       >
-        <div
-          v-for="item in towerLeft"
-          :key="item"
-          :class="`tower__block-${item}`"
-          class="tower__block"
-          :id="item"
-          @dragstart="dragStart"
-        ></div>
-      </div>
-      <div
-        class="tower center"
-        @dragover.prevent="dragOver"
-        @drop="dragEnd"
-        @dragenter="dragEnter"
-        @dragleave="dragLeave"
-      ></div>
-      <div
-        class="tower rigth"
-        @dragover.prevent="dragOver"
-        @drop="dragEnd"
-        @dragenter="dragEnter"
-        @dragleave="dragLeave"
-      ></div>
+      </the-tower>
+      <the-tower
+        :currentElement="currentElement"
+        class="center"
+        id="towerCenter"
+        :tower="towers.towerCenter"
+        @endDrop="dropElement"
+        @elementMove="startDrag"
+      ></the-tower>
+      <the-tower
+        :currentElement="currentElement"
+        class="rigth"
+        id="towerRigth"
+        :tower="towers.towerRigth"
+        @endDrop="dropElement"
+        @elementMove="startDrag"
+      ></the-tower>
     </div>
-    <div class="new-game">
-      <button @click="init">New Game</button>
-    </div>
+    <new-game @startGame="init"></new-game>
+    <game-over v-if="endGame" @closeDialog="closeModal"></game-over>
   </main>
 </template>
 
 <script>
 import { newTop } from "./game";
+import TheTower from "./components/TheTower.vue";
+import NewGame from "./components/NewGame.vue";
+import GameOver from "./components/GameOver.vue";
 
 export default {
   name: "App",
-  components: {},
+  components: {
+    TheTower,
+    NewGame,
+    GameOver
+  },
   data() {
     return {
-      all: 7,
-      towerLeft: [],
-      towerCenter: [],
-      towerRigth: [],
+      all: 0,
+      towers: {
+        towerLeft: [],
+        towerCenter: [],
+        towerRigth: []
+      },
+      towerFrom: "",
       logs: [],
       currentElement: null,
-      droppable: false
+      droppable: false,
+      endGame: false
     };
   },
   methods: {
-    init() {
-      this.towerLeft = [];
-      this.towerCenter = [];
-      this.towerRigth = [];
+    gameOver(tower, value) {
+      if (this.all === value) {
+        if (tower !== "towerLeft") this.endGame = true;
+      }
+    },
+    init(value) {
+      Object.assign(this.towers, {
+        towerLeft: [],
+        towerCenter: [],
+        towerRigth: []
+      });
+      this.all = value;
       setTimeout(() => {
         for (let i = this.all; i > 0; i--) {
-          this.towerLeft.push(i);
+          this.towers.towerLeft.push(i);
         }
       }, 0);
       setTimeout(() => newTop(), 300);
     },
-    dragEnter(e) {
-      if (e.target.classList.contains("tower")) {
-        const lastChildId = e.target.lastElementChild
-          ? e.target.lastElementChild.id
-          : this.all + 1;
-        console.log("last child id:" + lastChildId);
-        if (this.currentElement.id <= lastChildId) {
-          e.target.classList.add("color-green");
-          this.droppable = true;
-        } else {
-          e.target.classList.add("color-red");
-          this.droppable = false;
-        }
-      }
+    closeModal() {
+      this.endGame = false;
     },
-    dragOver() {
-      console.log("drag over");
+    dropElement({ el, blockId, tower }) {
+      this.setCurrentElement(el);
+      this.towers[this.towerFrom].pop();
+      this.towers[tower].push(blockId);
+      const log = this.logs.pop();
+      Object.assign(log, { to: `${tower} block #${blockId}` });
+      this.logs.push(log);
+      const height = this.towers[tower].length;
+      this.gameOver(tower, height);
+      setTimeout(() => newTop(), 0);
     },
-    dragLeave(e) {
-      if (e.target.classList.contains("tower")) {
-        e.target.classList.remove("color-green");
-        e.target.classList.remove("color-red");
-      }
+    startDrag({ el, tower }) {
+      this.setCurrentElement(el);
+      this.towerFrom = tower;
+      this.logs.push({ from: `${tower} block #${el.id}` });
     },
-    dragEnd(e) {
-      if (this.droppable && e.target.classList.contains("tower")) {
-        e.target.appendChild(this.currentElement);
-        this.currentElement = null;
-      }
-      this.dragLeave(e);
-      const childrens = e.target.children.length;
-      if (childrens === this.all) {
-        alert("You won!");
-      }
-      console.log("childrens: " + childrens);
-      newTop();
-    },
-    dragStart(e) {
-      this.currentElement = e.target;
+    setCurrentElement(el) {
+      this.currentElement = el;
     }
   }
 };
@@ -164,18 +159,6 @@ main {
   }
 }
 
-.draggable {
-  cursor: pointer;
-}
-
-.color-green {
-  background-color: #74fc3e36;
-}
-
-.color-red {
-  background-color: #fc3e3e3a;
-}
-
 .container {
   width: 100%;
   max-width: 1200px;
@@ -184,68 +167,5 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-}
-
-.tower {
-  position: relative;
-  width: 30%;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  border-bottom: 5px solid #116466;
-
-  &__block {
-    height: 2.5rem;
-    border: 2px solid #2c3531;
-    border-radius: 1rem;
-    background: radial-gradient(
-      circle at top,
-      rgba(209, 232, 226, 1) 0%,
-      rgba(17, 100, 102, 1) 60%,
-      rgba(44, 53, 49, 1) 100%
-    );
-    // transform: translateY(-1rem);
-    animation: drop 0.7s forwards;
-
-    @for $i from 1 through 7 {
-      &-#{$i} {
-        width: 100% - 15 * (7-$i);
-      }
-    }
-  }
-}
-
-.new-game {
-  padding: 30px;
-
-  & button {
-    border-radius: 0.7rem;
-    border: 1px solid #d1e8e2;
-    padding: 10px 20px;
-    font-size: 1.3rem;
-    background-color: #116466;
-    color: #d1e8e2;
-    cursor: pointer;
-    transition: all 0.3s linear;
-
-    &:hover {
-      color: #116466;
-      background-color: #d1e8e2;
-      border-color: #2c3531;
-    }
-
-    &:focus {
-      outline: none;
-    }
-  }
-}
-
-@keyframes drop {
-  from {
-    transform: translateY(-1rem);
-  }
-  to {
-    transform: translateY(0);
-  }
 }
 </style>
