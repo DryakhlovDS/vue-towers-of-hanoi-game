@@ -31,7 +31,7 @@
       ></the-tower>
     </div>
     <new-game @startGame="init"></new-game>
-    <game-over v-if="endGame" @closeDialog="closeModal"></game-over>
+    <game-over v-if="endGame" @closeDialog="setEndGame(false)"></game-over>
   </main>
 </template>
 
@@ -66,7 +66,7 @@ export default {
   methods: {
     gameOver(tower, value) {
       if (this.all === value) {
-        if (tower !== "towerLeft") this.endGame = true;
+        if (tower !== "towerLeft") this.setEndGame(true);
       }
     },
     init(value) {
@@ -83,8 +83,8 @@ export default {
       }, 0);
       setTimeout(() => newTop(), 300);
     },
-    closeModal() {
-      this.endGame = false;
+    setEndGame(value) {
+      this.endGame = value;
     },
     dropElement({ el, blockId, tower }) {
       this.setCurrentElement(el);
@@ -141,10 +141,8 @@ main {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #116466;
-  // background-color: linear-gradient(#116466 0%, #ffcb9a 50%);
   background-image: url(../public/bg.jpeg);
   background-size: cover;
-  // background-blend-mode: soft-light;
 
   &::before {
     content: "";

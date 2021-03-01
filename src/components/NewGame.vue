@@ -10,7 +10,7 @@
         v-model.number="all"
         placeholder="min number 3, max number 7"
       />
-      <base-button @click="startGame">Start</base-button>
+      <base-button @click="startGame" :disabled="start">Start</base-button>
     </div>
   </div>
 </template>
@@ -21,8 +21,18 @@ export default {
   data() {
     return {
       all: 3,
-      newGame: true
+      newGame: true,
+      start: false
     };
+  },
+  watch: {
+    all(value) {
+      if (typeof value === "number") {
+        if (2 < value && value < 8) this.start = false;
+      } else {
+        this.start = true;
+      }
+    }
   },
   methods: {
     startGame() {

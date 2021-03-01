@@ -31,5 +31,10 @@ button {
   &:focus {
     outline: none;
   }
+
+  &:disabled {
+    background: #f1f1f1;
+    color: #808080;
+  }
 }
 </style>
